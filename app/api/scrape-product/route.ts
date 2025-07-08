@@ -1,7 +1,6 @@
 import { type NextRequest, NextResponse } from "next/server"
 
-// This would be used for actual web scraping in a production environment
-// For now, it's a placeholder for the scraping functionality
+
 
 interface ScrapeRequest {
   url: string
