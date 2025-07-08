@@ -29,11 +29,9 @@ function getKnownProductPrices(query: string, country: string): PriceResult[] {
     }
   }
 
-  // If no known prices, return empty array to trigger API calls
   return []
 }
 
-// Use SerpAPI for real Google Shopping results
 async function fetchGoogleShopping(query: string, country: string): Promise<PriceResult[]> {
   const SERPAPI_KEY = process.env.SERPAPI_KEY
   if (!SERPAPI_KEY) return []
@@ -68,19 +66,15 @@ async function searchProductPrices(query: string, country: string): Promise<Pric
   const allResults: PriceResult[] = []
 
   try {
-    // First check our known product database
     const knownProducts = getKnownProductPrices(query, country)
     if (knownProducts.length > 0) {
       return knownProducts
     }
 
-    // Try SerpAPI if available
+
     const serpResults = await fetchGoogleShopping(query, country)
     allResults.push(...serpResults)
-
-    // If we got real results, use them
     if (allResults.length > 0) {
-      // Remove duplicates and sort by price
       const uniqueResults = allResults.filter(
         (result, index, self) => index === self.findIndex((r) => r.website === result.website),
       )
@@ -95,7 +89,6 @@ async function searchProductPrices(query: string, country: string): Promise<Pric
         .slice(0, 8)
     }
 
-    // Fallback: Generate realistic prices based on product type
     return generateRealisticPrices(query, country)
   } catch (error) {
     console.error("Error in searchProductPrices:", error)
@@ -103,7 +96,6 @@ async function searchProductPrices(query: string, country: string): Promise<Pric
   }
 }
 
-// Generate realistic fallback data with proper pricing
 function generateRealisticPrices(query: string, country: string): PriceResult[] {
   const websites = {
     IN: ["amazon.in", "flipkart.com", "croma.com", "reliance-digital.in", "tatacliq.com"],
@@ -114,8 +106,6 @@ function generateRealisticPrices(query: string, country: string): PriceResult[] 
   }
 
   const siteList = websites[country as keyof typeof websites] || websites.US
-
-  // Realistic price ranges for different product categories
   const priceRanges: Record<string, { min: number; max: number; currency: string }> = {
     macbook: {
       min: country === "IN" ? 120000 : 1200,
@@ -149,9 +139,8 @@ function generateRealisticPrices(query: string, country: string): PriceResult[] 
     },
   }
 
-  // Determine product category
   const queryLower = query.toLowerCase()
-  let priceRange = priceRanges["default"] // default
+  let priceRange = priceRanges["default"] 
 
   for (const [category, range] of Object.entries(priceRanges)) {
     if (queryLower.includes(category)) {
@@ -162,9 +151,7 @@ function generateRealisticPrices(query: string, country: string): PriceResult[] 
 
   const results = siteList.slice(0, 5).map((site, i) => {
     const basePrice = priceRange.min + (priceRange.max - priceRange.min) * Math.random()
-    const price = Math.floor(basePrice + i * basePrice * 0.05) // 5% variation between sites
-
-    // Create realistic links
+    const price = Math.floor(basePrice + i * basePrice * 0.05) 
     const searchQuery = encodeURIComponent(query)
     let link = ""
     if (site.includes("amazon")) {
